@@ -3,10 +3,15 @@ import { useRouter } from 'next/router';
 
 import { getPrismicClient } from '../../services/prismic';
 import Prismic from '@prismicio/client';
+import { RichText } from "prismic-dom";
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
-import { RichText } from "prismic-dom";
+import { FiCalendar,FiUser,FiClock } from "react-icons/fi";
+
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+
 
 interface Post {
   first_publication_date: string | null;
@@ -32,16 +37,11 @@ interface PostProps {
 export default function Post({ post }:PostProps) {
   const router = useRouter();
 
-  console.log(post);
+  const totalWords = post.data.content
+  .map( content => RichText.asText(content.body).split(' '))
+  .reduce((total, text) => {
 
-  const totalWords = post.data.content.reduce((total, contentItem) => {
-
-    const words = RichText.asText(contentItem.body).split(' ');
-
-    words.map(word => {
-      total += word.length
-    });
-
+    total += text.length;
     return total
   }, 0);
 
@@ -53,9 +53,35 @@ export default function Post({ post }:PostProps) {
   }
 
   return (
-    <>
-      <h1>Post</h1>
-    </>
+    <main className={commonStyles.container}>
+      <div className={styles.banner_img}>
+        <img src={post.data.banner.url} alt="Banner" />
+      </div>
+
+      <article className={styles.content}>
+        <h2>{post.data.title}</h2>
+
+        <div className={styles.header_content}>
+          <time><FiCalendar size={16}/> {format(new Date(post.first_publication_date), "d MMM uuuu",{  locale: ptBR  })}</time>
+          <p><FiUser size={16}/>{post.data.author}</p>
+          <p><FiClock size={16}/> {readTimeTotal} min</p>
+        </div>
+
+        {post.data.content.map((content) => (
+          <div key={content.heading} className={styles.bodyContent}>
+            <p className={styles.titleHeading}>
+              {content.heading}
+            </p>
+
+            <div
+              className={styles.bodyText}
+              dangerouslySetInnerHTML={{__html:RichText.asHtml(content.body)}}
+            />
+          </div>
+        ))}
+
+      </article>
+    </main>
   )
 }
 
@@ -91,25 +117,7 @@ export const getStaticProps : GetStaticProps = async context => {
 
   const slug = context.params.slug;
 
-  const response = await prismic.getByUID('pos',String(slug),{});
-
-  const post = {
-    first_publication_date: response.first_publication_date,
-    data: {
-      title: response.data.title,
-      banner: {
-        url: response.data.banner.url
-      },
-      author: response.data.author,
-      content: response.data.content.map( content => {
-        return {
-          heading: content.heading,
-          body: [...content.body]
-        }
-      }),
-    }
-  }
-
+  const post = await prismic.getByUID('pos',String(slug),{});
 
   return {
     props : {

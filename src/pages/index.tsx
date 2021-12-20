@@ -35,21 +35,36 @@ interface HomeProps {
 
 export default function Home({ postsPagination  } : HomeProps ) {
   const { next_page } = postsPagination;
-  const [ posts, setPosts] = useState<Post[]>(postsPagination.results);
+  const [ posts, setPosts] = useState<Post[]>(postsPagination.results.map((post : Post) => {
+      return {
+        uid:post.uid ,
+        first_publication_date: post.first_publication_date,
+        data: {
+          title: post.data.title,
+          subtitle: post.data.subtitle,
+          author: post.data.author,
+        }
+      }
+    })
+  );
   const [ nextPage, setNextPage] = useState(next_page);
 
   async function handleNextPagePosts() : Promise<void>{
 
+    if(nextPage === null){
+      return;
+    }
+
     const response = await fetch(next_page);
 
-    const resultsNextPage = await response.json()
+    const resultsNextPage = await response.json();
 
     setPosts([
       ...posts,
       ...resultsNextPage.results.map((post : Post) => {
         return {
           uid:post.uid ,
-          first_publication_date: format(new Date(post.first_publication_date), "d MMM uuuu",{  locale: ptBR  }),
+          first_publication_date: post.first_publication_date,
           data: {
             title: post.data.title,
             subtitle: post.data.subtitle,
@@ -80,7 +95,7 @@ export default function Home({ postsPagination  } : HomeProps ) {
                   <h4> {post.data.subtitle}</h4>
 
                   <div className={styles.postsFooter}>
-                    <time><FiCalendar/> {post.first_publication_date}</time>
+                    <time><FiCalendar/> {format(new Date(post.first_publication_date), "d MMM uuuu",{  locale: ptBR  })}</time>
                     <p><FiUser/> {post.data.author}</p>
                   </div>
 
@@ -120,7 +135,7 @@ export const getStaticProps:  GetStaticProps = async () => {
 
     return {
       uid:post.uid ,
-      first_publication_date: format(new Date(post.first_publication_date), "d MMM uuuu",{  locale: ptBR  }),
+      first_publication_date: post.first_publication_date,
       data: {
         title: post.data.title,
         subtitle: post.data.subtitle,
@@ -134,8 +149,8 @@ export const getStaticProps:  GetStaticProps = async () => {
   return {
     props: {
       postsPagination :{
+        next_page,
         results,
-        next_page
       }
     }
   }
