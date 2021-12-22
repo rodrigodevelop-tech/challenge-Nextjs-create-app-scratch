@@ -3,3 +3,24 @@
   margin: 0 auto;
   padding: 0 2rem;
 }
+
+.exitPreview {
+  display: flex;
+
+  background: var(--white);
+  border: 0;
+  width: 43.75rem;
+  height: 3.625rem;
+  border-radius: .25rem;
+  margin-top: 5rem;
+
+  justify-content: center;
+  align-items: center;
+
+  a {
+    color: var(--black);
+    font-size: 1.125rem;
+    text-align: center;
+    font-weight: 600;
+  }
+}

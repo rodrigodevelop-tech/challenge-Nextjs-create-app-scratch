@@ -11,7 +11,7 @@ import Prismic from '@prismicio/client';
 import { FiCalendar,FiUser } from "react-icons/fi";
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 
 interface Post {
@@ -31,10 +31,13 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination;
+  preview: boolean;
 }
 
-export default function Home({ postsPagination  } : HomeProps ) {
+export default function Home({ postsPagination, preview } : HomeProps ){
+
   const { next_page } = postsPagination;
+
   const [ posts, setPosts] = useState<Post[]>(postsPagination.results.map((post : Post) => {
       return {
         uid:post.uid ,
@@ -47,7 +50,9 @@ export default function Home({ postsPagination  } : HomeProps ) {
       }
     })
   );
+
   const [ nextPage, setNextPage] = useState(next_page);
+  const [ previewState, setPreviewState] = useState(preview);
 
   async function handleNextPagePosts() : Promise<void>{
 
@@ -77,7 +82,6 @@ export default function Home({ postsPagination  } : HomeProps ) {
     setNextPage(resultsNextPage.next_page);
 
   }
-
 
   return(
     <>
@@ -113,13 +117,23 @@ export default function Home({ postsPagination  } : HomeProps ) {
               </button>
             )
           }
+
+          {
+            preview && (
+              <aside className={commonStyles.exitPreview}>
+                <Link href="/api/exit-preview">
+                  <a>Sair do modo Preview</a>
+                </Link>
+              </aside>
+            )
+          }
         </div>
       </main>
     </>
   )
 }
 
-export const getStaticProps:  GetStaticProps = async () => {
+export const getStaticProps:  GetStaticProps<HomeProps> = async ({ preview = false, previewData }) => {
   const prismic = getPrismicClient();
 
   const postsResponse = await prismic.query(
@@ -127,7 +141,10 @@ export const getStaticProps:  GetStaticProps = async () => {
       Prismic.predicates.at('document.type','pos')
     ],
     {
+      fetch: ['pos.title', 'pos.subtitle', 'pos.author', 'pos.content'],
       pageSize: 4,
+      ref: previewData?.ref ?? null,
+      orderings: '[document.first_publication_date]'
     }
   );
 
@@ -151,8 +168,9 @@ export const getStaticProps:  GetStaticProps = async () => {
       postsPagination :{
         next_page,
         results,
-      }
-    }
+      },
+      preview
+    },
   }
 
 };

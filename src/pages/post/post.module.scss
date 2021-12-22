@@ -64,3 +64,50 @@
     }
   }
 }
+
+.linePostFooter {
+  margin-top: 4rem;
+  border-bottom: 1px solid var(--gray-400);
+}
+
+.navigatePost {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4rem;
+
+  .previousPost {
+    text-align: left;
+
+    p {
+      margin-bottom: .5rem;
+      font-size: 1.125rem;
+      color: var(--gray-100);
+    }
+
+    a {
+      color: var(--pink-100);
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.21rem;
+    }
+  }
+
+  .nextPost {
+    text-align: right;
+
+    p {
+      margin-bottom: .5rem;
+      font-size: 1.125rem;
+      color: var(--gray-100);
+    }
+
+    a {
+      color: var(--pink-100);
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.21rem;
+    }
+  }
+
+}
+
