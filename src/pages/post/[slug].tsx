@@ -12,12 +12,14 @@ import { FiCalendar,FiUser,FiClock } from "react-icons/fi";
 
 import { format, parseJSON } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import  Comments  from '../../components/Comments';
 
 
 interface Post {
   id: string;
   uid?: string;
   first_publication_date: string | null;
+  last_publication_date: string | null;
   data: {
     title: string;
     banner: {
@@ -42,12 +44,6 @@ interface PostProps {
 
 export default function Post({ post, preview,previousPost,nextPost }:PostProps) {
   const router = useRouter();
-
-  // console.log('ANTERIOR##')
-  // console.log(previousPost);
-
-  // console.log('NEXT##')
-  // console.log(nextPost);
 
   const totalWords = post.data.content
   .map( content => RichText.asText(content.body).split(' '))
@@ -89,47 +85,72 @@ export default function Post({ post, preview,previousPost,nextPost }:PostProps) 
           </p>
         </div>
 
-        {post.data.content.map(content => (
-          <div key={content.heading} className={styles.bodyContent}>
-            <p className={styles.titleHeading}>{content.heading}</p>
+        {
+          post.last_publication_date && (
+            <p className={styles.updatedPost}>
+              * editado em {format(new Date(post.last_publication_date), 'd MMM uuuu', {
+                locale: ptBR,
+              })},
+              às
+              {format(new Date(post.last_publication_date), 'k:m', {
+                locale: ptBR,
+              })}
+            </p>
+          )
+        }
 
-            <div
-              className={styles.bodyText}
-              dangerouslySetInnerHTML={{
-                __html: RichText.asHtml(content.body),
-              }}
-            />
-          </div>
-        ))}
+        {
+          post.data.content.map(content => (
+            <div key={content.heading} className={styles.bodyContent}>
+              <p className={styles.titleHeading}>{content.heading}</p>
+
+              <div
+                className={styles.bodyText}
+                dangerouslySetInnerHTML={{
+                  __html: RichText.asHtml(content.body),
+                }}
+              />
+            </div>
+          ))
+        }
 
         <div className={styles.linePostFooter}/>
 
         <div className={styles.navigatePost}>
 
               {
-                previousPost !== null && (
+                previousPost !== null ? (
                   <aside  className={styles.previousPost}>
                     <p>{previousPost.data?.title}</p>
                     <Link href={`/post/${previousPost.uid}`} >
                       <a>Post anterior</a>
                     </Link>
                    </aside>
+                ) : (
+                  <aside  className={styles.previousPost}>
+
+                  </aside>
                 )
               }
 
               {
-                nextPost !== null && (
+                nextPost !== null ? (
                   <aside  className={styles.nextPost}>
                     <p>{nextPost.data?.title}</p>
                     <Link href={`/post/${nextPost.uid}`} >
                       <a>Próximo post</a>
                     </Link>
                   </aside>
+                ) : (
+                  <aside  className={styles.nextPost}>
+
+                  </aside>
                 )
               }
 
-
         </div>
+
+        <Comments commentBoxId="comments"/>
 
         {preview && (
           <aside className={commonStyles.exitPreview}>
@@ -139,6 +160,7 @@ export default function Post({ post, preview,previousPost,nextPost }:PostProps) 
           </aside>
         )}
       </article>
+
     </main>
   );
 }
